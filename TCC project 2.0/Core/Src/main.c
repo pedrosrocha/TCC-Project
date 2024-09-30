@@ -134,6 +134,7 @@ int counter_for_DMA_activation = 0;
 // temp
 uint32_t current_tick = 0, end_tick = 0, diff_tick = 0, us = 0;
 float RealFrequeny = 0;
+uint8_t c = 0;
 
 
 /* USER CODE END Includes */
@@ -272,20 +273,21 @@ int main(void)
 		//sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t %u \r\n", ThreePhasesVoltages.VoltageA, ThreePhasesVoltages.VoltageB, ThreePhasesVoltages.VoltageC, CurrentSample);
 		//sprintf(message, "time: %d \t Current sample: %u\r\n", msCounter, CurrentSample);
 
-		  //PeriodCounter4Bench = CounterBenchPeriod(frequency);
+		  PeriodCounter4Bench = CounterBenchPeriod(frequency);
 
 
 		 //sprintf(message, "%.2f \t %u \t %.2f \t %.2f \t \r\n",  pid.Phase, CurrentSample, pid.Frequency/360, frequency);
 		 //sprintf(message, "%.2f\t %.2f \r\n",  pid.Phase, error);
 		 //sprintf(message, "Alpha: %.2f \t Beta: %.2f \t \r\n",ClarkVal.Alpha, ClarkVal.Beta);
-		 sprintf(message, "%.3f \t %.3f \t  %.3f \t  %.3f \t %lu \t \r\n", filteroutput, pid.Frequency/360.0f, RealFrequeny , pid.Phase, CurrentSample);
+		 //sprintf(message, "%.3f \t %.3f \t  %.3f \t  %.3f \t %lu \t \r\n", filteroutput, pid.Frequency/360.0f, RealFrequeny , pid.Phase, CurrentSample);
 
-		  //sprintf(message, "%.3f \t %.2f \t  %lu \t  %.2f \t %lu \t \r\n", 1000000.0f/filteroutput, pid.Frequency/360.0f, diff_tick , pid.Phase, CurrentSample);
+		 //sprintf(message, "%.3f \t %.2f \t  %lu \t  %.2f \t %lu \t \r\n", 1000000.0f/filteroutput, pid.Frequency/360.0f, diff_tick , pid.Phase, CurrentSample);
+
 
 
 		  //Voltage_ADC_offset = adc_buffer[0];
 
-		 // sprintf(message, "%lu \t %lu \t %lu \t %lu  \t \r\n", adc_buffer[0], adc_buffer[1], adc_buffer[2], adc_buffer[3]);
+		  sprintf(message, "%lu \t %lu \t %lu \t %lu  \t \r\n", adc_buffer[0], adc_buffer[1], adc_buffer[2], adc_buffer[3]);
 
 		 CDC_Transmit_FS(message, strlen(message));
 
@@ -976,17 +978,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		 Voltages.VoltageC =  (float)MeineBench.SineC;
 		*/
 
-		 //ThreePhasesVoltages = ADC2RealValues(Voltages, ratio_numerator, ratio_denominator, ADC_offset);
+		 ThreePhasesVoltages = ADC2RealValues(Voltages, ratio_numerator, ratio_denominator, ADC_offset);
 
-		 //ClarkVal = abc2alphabeta(ThreePhasesVoltages.VoltageA , ThreePhasesVoltages.VoltageB , ThreePhasesVoltages.VoltageC );
-		 //ClarkVal = abc2alphabeta(Voltages.VoltageA , Voltages.VoltageB , Voltages.VoltageC );
+		 ClarkVal = abc2alphabeta(ThreePhasesVoltages.VoltageA , ThreePhasesVoltages.VoltageB , ThreePhasesVoltages.VoltageC );
+		 ClarkVal = abc2alphabeta(Voltages.VoltageA , Voltages.VoltageB , Voltages.VoltageC );
 
-		 //error = AlphaBetaCalculation(ClarkVal.Alpha, ClarkVal.Beta, pid.Phase);
-		 //PIDController_Update(&pid, error);
-		 //integrator(&pid);
+		 error = AlphaBetaCalculation(ClarkVal.Alpha, ClarkVal.Beta, pid.Phase);
+		 PIDController_Update(&pid, error);
+		 integrator(&pid);
 
 		 //filteroutput = lowPassFilter(pid.Frequency/360.0f, &filt);
-		 //filteroutput = lowPassFilter2ndOrder(pid.Frequency/360.0f, &filter2nd);
+		 filteroutput = lowPassFilter2ndOrder(pid.Frequency/360.0f, &filter2nd);
 
 
 	 }

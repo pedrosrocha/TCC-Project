@@ -270,7 +270,7 @@ int main(void)
 		//sprintf(message, "Voltage A: %u \t Voltage B: %u \t Voltage C: %u \r\n",MeineBench.SineA, MeineBench.SineB, MeineBench.SineC);
 
 		//sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t \r\n", Voltages.VoltageA, Voltages.VoltageB, Voltages.VoltageC);
-		//sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t %u \r\n", ThreePhasesVoltages.VoltageA, ThreePhasesVoltages.VoltageB, ThreePhasesVoltages.VoltageC, CurrentSample);
+		sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t \r\n", ThreePhasesVoltages.VoltageA, ThreePhasesVoltages.VoltageB, ThreePhasesVoltages.VoltageC, Voltages.VoltageA, Voltages.VoltageB, Voltages.VoltageC);
 		//sprintf(message, "time: %d \t Current sample: %u\r\n", msCounter, CurrentSample);
 
 		  PeriodCounter4Bench = CounterBenchPeriod(frequency);
@@ -287,7 +287,7 @@ int main(void)
 
 		  //Voltage_ADC_offset = adc_buffer[0];
 
-		  sprintf(message, "%lu \t %lu \t %lu \t %lu  \t \r\n", adc_buffer[0], adc_buffer[1], adc_buffer[2], adc_buffer[3]);
+		  //sprintf(message, "%lu \t %lu \t %lu \t %lu  \t \r\n", adc_buffer[0], adc_buffer[1], adc_buffer[2], adc_buffer[3]);
 
 		 CDC_Transmit_FS(message, strlen(message));
 
@@ -978,10 +978,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		 Voltages.VoltageC =  (float)MeineBench.SineC;
 		*/
 
+		 ADC_offset = (float)adc_buffer[3] * ADC_voltage_constant - 0.10f;
+		 ADC_offset = (float)adc_buffer[3];
 		 ThreePhasesVoltages = ADC2RealValues(Voltages, ratio_numerator, ratio_denominator, ADC_offset);
 
 		 ClarkVal = abc2alphabeta(ThreePhasesVoltages.VoltageA , ThreePhasesVoltages.VoltageB , ThreePhasesVoltages.VoltageC );
-		 ClarkVal = abc2alphabeta(Voltages.VoltageA , Voltages.VoltageB , Voltages.VoltageC );
+		 //ClarkVal = abc2alphabeta(Voltages.VoltageA , Voltages.VoltageB , Voltages.VoltageC );
 
 		 error = AlphaBetaCalculation(ClarkVal.Alpha, ClarkVal.Beta, pid.Phase);
 		 PIDController_Update(&pid, error);

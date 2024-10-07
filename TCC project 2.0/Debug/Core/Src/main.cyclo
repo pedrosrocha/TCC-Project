@@ -14,5 +14,5 @@
 ../Core/Src/main.c:801:13:MX_DMA_Init	1
 ../Core/Src/main.c:820:13:MX_GPIO_Init	1
 ../Core/Src/main.c:896:6:HAL_TIM_PeriodElapsedCallback	10
-../Core/Src/main.c:998:9:CounterBenchPeriod	1
-../Core/Src/main.c:1014:6:Error_Handler	1
+../Core/Src/main.c:1000:9:CounterBenchPeriod	1
+../Core/Src/main.c:1016:6:Error_Handler	1

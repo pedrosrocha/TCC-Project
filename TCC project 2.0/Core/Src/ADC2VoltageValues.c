@@ -33,12 +33,25 @@ VoltageValues GPIO2RealVoltage( VoltageValues GPIOVoltage, uint32_t ratio_numera
 VoltageValues ADC2RealValues( VoltageValues ADCvalues, uint32_t ratio_numerator, uint32_t ratio_denominator, float ADC_offset){
 	VoltageValues output;
 
-	output = ADC2GPIOVoltage(ADCvalues, ADC_offset);
-	output = GPIO2RealVoltage(output, ratio_numerator, ratio_denominator);
+	//output = ADC2GPIOVoltage(ADCvalues, ADC_offset);
+	//output = GPIO2RealVoltage(output, ratio_numerator, ratio_denominator);
+	float offset_adjusted = ADC_offset * Voltage_per_bit - 0.10f;
+
+
+	output.VoltageA = (ADCvalues.VoltageA * Voltage_per_bit - offset_adjusted) * 293.3330f; //
+	output.VoltageB = (ADCvalues.VoltageB * Voltage_per_bit - offset_adjusted) * 293.3330f; //
+	output.VoltageC = (ADCvalues.VoltageC * Voltage_per_bit - offset_adjusted) * 293.3330f; //
 
 	return output;
 }
+VoltageValues ADCtoVoltage( VoltageValues ADCvalues, float ADC_offset){
+	VoltageValues output;
+	output.VoltageA = (ADCvalues.VoltageA * Voltage_per_bit - ADC_offset) * 293.3330f; //
+	output.VoltageB = (ADCvalues.VoltageB * Voltage_per_bit - ADC_offset) * 293.3330f; //
+	output.VoltageC = (ADCvalues.VoltageC * Voltage_per_bit - ADC_offset) * 293.3330f; //
 
+	return output;
+}
 
 
 

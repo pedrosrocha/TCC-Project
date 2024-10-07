@@ -1,3 +1,4 @@
 ../Core/Src/ADC2VoltageValues.c:14:15:ADC2GPIOVoltage	64	static
 ../Core/Src/ADC2VoltageValues.c:24:15:GPIO2RealVoltage	72	static
-../Core/Src/ADC2VoltageValues.c:33:15:ADC2RealValues	72	static
+../Core/Src/ADC2VoltageValues.c:33:15:ADC2RealValues	80	static
+../Core/Src/ADC2VoltageValues.c:47:15:ADCtoVoltage	64	static

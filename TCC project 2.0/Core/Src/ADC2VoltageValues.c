@@ -38,9 +38,9 @@ VoltageValues ADC2RealValues( VoltageValues ADCvalues, uint32_t ratio_numerator,
 	float offset_adjusted = ADC_offset * Voltage_per_bit - 0.10f;
 
 
-	output.VoltageA = (ADCvalues.VoltageA * Voltage_per_bit - offset_adjusted) * 293.3330f; //
-	output.VoltageB = (ADCvalues.VoltageB * Voltage_per_bit - offset_adjusted) * 293.3330f; //
-	output.VoltageC = (ADCvalues.VoltageC * Voltage_per_bit - offset_adjusted) * 293.3330f; //
+	output.VoltageA = (ADCvalues.VoltageA * Voltage_per_bit - offset_adjusted) * 293.3330f; // 220/12 * 16
+	output.VoltageB = (ADCvalues.VoltageB * Voltage_per_bit - offset_adjusted) * 293.3330f; // 220/12 * 16
+	output.VoltageC = (ADCvalues.VoltageC * Voltage_per_bit - offset_adjusted) * 293.3330f; // 220/12 * 16
 
 	return output;
 }

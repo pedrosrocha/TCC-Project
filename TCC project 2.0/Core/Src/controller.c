@@ -17,6 +17,7 @@
 #include <ADC2VoltageValues.h>
 //------------------
 #define PI 3.141592654
+#define radian2degree 57.29577951
 
 float SineTableValues[] = {0.0000000,0.0087300,0.0174500,0.0261800,0.0349000,0.0436200,0.0523400,0.0610500,0.0697600,0.0784600,0.0871600,0.0958500,0.1045300,0.1132000,
 		0.1218700,0.1305300,0.1391700,0.1478100,0.1564300,0.1650500,0.1736500,0.1822400,0.1908100,0.1993700,0.2079100,0.2164400,0.2249500,0.2334500,0.2419200,0.2503800,
@@ -79,67 +80,56 @@ void PIDController_Init(PIController *pid){
 }
 
 float Sine(float phase){
-	long unsigned int PhasePos;
-	int n;
+  uint16_t PhasePos;
+  uint8_t n;
+  phase = phase*2;
 
-	if(phase > 360){
-		n = phase/360;
-		PhasePos = phase - 360*n;
-	}else{
-		PhasePos = phase;
-	}
-	PhasePos = PhasePos*2;
+  if(phase >= 720){
+    n = phase/720;
+    PhasePos = phase - 720*n;
+  }else{
+    PhasePos = phase;
+  }
+  PhasePos = PhasePos;
 
-	return SineTableValues[PhasePos];
+  return SineTableValues[PhasePos];
 }
 
 
 
 double Cossine(float phase){
-	long unsigned int PhasePos;
-	int n;
-
-	if(phase > 360){
-		n = phase/360;
-		PhasePos = phase - 360*n;
-	}else{
-		PhasePos = phase;
-	}
-
-
-	if(phase + 90 > 360){
-		PhasePos = phase - 270;
-	}else{
-		PhasePos = phase + 90;
-	}
-
-	PhasePos = PhasePos*2;
-
-	return SineTableValues[PhasePos];
+ return Sine(phase+90);
 }
+
 
 float PIDController_Update(PIController *pid, float measurement){
 	float error = measurement;
-	pid->Frequency = pid->Frequency + pid->T/2*(pid->prevError + error)*pid->Ki + pid->Kp*error;
+	float a =  pid->Kp + (pid->Ki * pid->T/2);
+	float b = -pid->Kp + (pid->Ki * pid->T/2);
+
+	//pid->Frequency = pid->Frequency + pid->T/2*(pid->prevError + error)*pid->Ki + pid->Kp*error;
+
+	pid->Frequency = pid->Frequency + a * error + b * pid->prevError;
 
 	if(pid->Frequency > pid->limMax) pid->Frequency = pid->limMax;
 	if(pid->Frequency < pid->limMin) pid->Frequency = pid->limMin;
 
 	pid->prevError = error;
 
+	//pid->Frequency = 376.9911184;
 	return pid->Frequency;
 }
 
 float integrator(PIController *pid){
 
 	pid->Phase = pid->Phase + pid->T/2 *(pid->Frequency + pid->prevFrequency);
-   //calculate the phase integration from the frequency. phase = 1/s * frequency
 
-	if(pid->Phase > 360) pid->Phase = 0;
-	if(pid->Phase < 0)   pid->Phase = 0;
-	//resets the phases wheneevr it passes the 360 mark
+	if(pid->Phase > 6.2831853071) pid->Phase = 0;
+	if(pid->Phase < 0)            pid->Phase = 0;
+	//resets the phases wheneevr it passes the 360 mark(2*pi)
 
 	pid->prevFrequency = pid->Frequency;
+
 	//updates the PrevFrequency value
 
 	return pid->Phase;
@@ -148,7 +138,9 @@ float integrator(PIController *pid){
 
 float AlphaBetaCalculation(float alpha, float beta, float phase){
 
-	return  (beta * Sine(phase) - alpha*Cossine(phase)) * (-1);
+	phase = phase * radian2degree;
+
+	return  -beta * Sine(phase) + alpha * Cossine(phase);
 }
 
 

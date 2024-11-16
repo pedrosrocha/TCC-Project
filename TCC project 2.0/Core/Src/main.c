@@ -35,11 +35,13 @@
 #define   DEF_MAX_MSG_LENGTH      128
 #define   sine_points          360
 
-#define Kp 120
-#define Ki 15000
+#define Kp 0.5  // 0.3
+#define Ki 100 // 120
 #define limMin -30000
-#define limMax 30000
-#define T 0.000040
+#define limMax  30000
+#define T 0.000320
+#define _2_PI 6.28318530717
+#define radian2degree 57.29577951
 
 #define cutOffFrequency 5.0f
 
@@ -132,7 +134,7 @@ uint32_t adc_buffer[ADC_BUF_SIZE] = {1,2,3,4};
 int counter_for_DMA_activation = 0;
 
 // temp
-uint32_t current_tick = 0, end_tick = 0, diff_tick = 0, us = 0;
+uint64_t current_tick = 0, end_tick = 0, diff_tick = 0, us = 0;
 float RealFrequeny = 0;
 uint8_t c = 0;
 
@@ -270,16 +272,15 @@ int main(void)
 		//sprintf(message, "Voltage A: %u \t Voltage B: %u \t Voltage C: %u \r\n",MeineBench.SineA, MeineBench.SineB, MeineBench.SineC);
 
 		//sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t \r\n", Voltages.VoltageA, Voltages.VoltageB, Voltages.VoltageC);
-		sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t \r\n", ThreePhasesVoltages.VoltageA, ThreePhasesVoltages.VoltageB, ThreePhasesVoltages.VoltageC, Voltages.VoltageA, Voltages.VoltageB, Voltages.VoltageC);
-		//sprintf(message, "time: %d \t Current sample: %u\r\n", msCounter, CurrentSample);
-
-		  PeriodCounter4Bench = CounterBenchPeriod(frequency);
+		//sprintf(message, "Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t Volt A: %.2f \t Volt B: %.2f \t Volt C: %.2f \t \r\n", ThreePhasesVoltages.VoltageA, ThreePhasesVoltages.VoltageB, ThreePhasesVoltages.VoltageC, Voltages.VoltageA, Voltages.VoltageB, Voltages.VoltageC);
+		//sprintf(message, "%.1f \t %lu \t\r\n", pid.Phase, CurrentSample); //*0.017453
+		//sprintf(message, "Volt A: %.2f \t %lu \t \r\n",ThreePhasesVoltages.VoltageA, CurrentSample);
 
 
 		 //sprintf(message, "%.2f \t %u \t %.2f \t %.2f \t \r\n",  pid.Phase, CurrentSample, pid.Frequency/360, frequency);
 		 //sprintf(message, "%.2f\t %.2f \r\n",  pid.Phase, error);
-		 //sprintf(message, "Alpha: %.2f \t Beta: %.2f \t \r\n",ClarkVal.Alpha, ClarkVal.Beta);
-		 //sprintf(message, "%.3f \t %.3f \t  %.3f \t  %.3f \t %lu \t \r\n", filteroutput, pid.Frequency/360.0f, RealFrequeny , pid.Phase, CurrentSample);
+		 //sprintf(message, "Alpha: %.2f \t Beta: %.2f \t %.1f  \t current sample: %lu \t \r\n",ClarkVal.Alpha, ClarkVal.Beta, error, pid.Phase);
+		 sprintf(message, "%.1f \t %.1f \t  %.3f \t  %.1f \t %lu \t \r\n", filteroutput, pid.Frequency/_2_PI, RealFrequeny , pid.Phase*radian2degree, CurrentSample);
 
 		 //sprintf(message, "%.3f \t %.2f \t  %lu \t  %.2f \t %lu \t \r\n", 1000000.0f/filteroutput, pid.Frequency/360.0f, diff_tick , pid.Phase, CurrentSample);
 
@@ -294,7 +295,7 @@ int main(void)
 		 PeriodCounter4Bench = CounterBenchPeriod(frequency);
 
 
-		 //HAL_GPIO_TogglePin(PC13_LED0_GPIO_Port, PC13_LED0_Pin);
+		 HAL_GPIO_TogglePin(PC13_LED0_GPIO_Port, PC13_LED0_Pin);
 		 //HAL_Delay(1);
 
 		 //HAL_GPIO_TogglePin(PC13_LED0_GPIO_Port, PC13_LED0_Pin);
@@ -408,21 +409,12 @@ static void MX_ADC1_Init(void)
 
   /** Configure Regular Channel
   */
-  sConfig.Channel = ADC_CHANNEL_2;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
   sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_3;
-  sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -442,6 +434,16 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_4;
   sConfig.SamplingTime = ADC_SAMPLETIME_24CYCLES_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -516,7 +518,7 @@ static void MX_LPUART1_UART_Init(void)
 
   /* USER CODE END LPUART1_Init 1 */
   hlpuart1.Instance = LPUART1;
-  hlpuart1.Init.BaudRate = 115200;
+  hlpuart1.Init.BaudRate = 256000;
   hlpuart1.Init.WordLength = UART_WORDLENGTH_8B;
   hlpuart1.Init.StopBits = UART_STOPBITS_1;
   hlpuart1.Init.Parity = UART_PARITY_NONE;
@@ -634,7 +636,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 170-1;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 39;
+  htim6.Init.Period = 319;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -909,13 +911,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		    	  end_tick = current_tick;
 		    	  current_tick = us; //HAL_GetTick();
 
-		    	  if(end_tick < current_tick){
-		    		  diff_tick = current_tick - end_tick;
-		    	  }else if(end_tick == current_tick){
-		    		  diff_tick = diff_tick;
-		    	  }else{
-		    		  diff_tick = 0xffffffff - end_tick + current_tick ;
-		    	  }
+		    	  diff_tick = current_tick - end_tick;
 
 		      }
 
@@ -939,15 +935,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		   }
 
 
-		   /*
-		   counter_E++;
-		   if(counter_E > 50000){
-			   counter_E = 0;
-			   frequency = frequency+1;
-			   if(frequency > 70) frequency = 50;
-		   }
-		   */
-
 
 
 		   counter_for_DMA_activation++;
@@ -966,32 +953,46 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 
 
 	 if(htim->Instance == TIM6){
-		 us += 40;
+
+		 us += 320;
+
 
 		 Voltages.VoltageA =  (float)adc_buffer[0];
 		 Voltages.VoltageB =  (float)adc_buffer[1];
 		 Voltages.VoltageC =  (float)adc_buffer[2];
 
-		 /*
-		 Voltages.VoltageA =  (float)MeineBench.SineA;
-		 Voltages.VoltageB =  (float)MeineBench.SineB;
-		 Voltages.VoltageC =  (float)MeineBench.SineC;
-		*/
 
-		 ADC_offset = (float)adc_buffer[3] * ADC_voltage_constant - 0.10f;
+		 /*
+		Voltages.VoltageA = MeineBench.SineA;
+	    Voltages.VoltageB = MeineBench.SineB;
+		Voltages.VoltageC = MeineBench.SineC;
+		  */
+
+
+		 //ADC_offset = (float)adc_buffer[3] * ADC_voltage_constant - 0.10f;
 		 ADC_offset = (float)adc_buffer[3];
 		 ThreePhasesVoltages = ADC2RealValues(Voltages, ratio_numerator, ratio_denominator, ADC_offset);
 
+
 		 ClarkVal = abc2alphabeta(ThreePhasesVoltages.VoltageA , ThreePhasesVoltages.VoltageB , ThreePhasesVoltages.VoltageC );
-		 //ClarkVal = abc2alphabeta(Voltages.VoltageA , Voltages.VoltageB , Voltages.VoltageC );
 
 		 error = AlphaBetaCalculation(ClarkVal.Alpha, ClarkVal.Beta, pid.Phase);
+
 		 PIDController_Update(&pid, error);
 		 integrator(&pid);
 
-		 //filteroutput = lowPassFilter(pid.Frequency/360.0f, &filt);
-		 filteroutput = lowPassFilter2ndOrder(pid.Frequency/360.0f, &filter2nd);
+		 //filteroutput = lowPassFilter(pid.Frequency/6.283185, &filt);
+		 //filteroutput = lowPassFilter2ndOrder(pid.Frequency/360.0f, &filter2nd);
 
+
+		 /*
+		   counter_E++;
+		   if(counter_E > 600){
+			   counter_E = 0;
+			   frequency = frequency+1;
+			   if(frequency > 70) frequency = 50;
+		   }
+			*/
 
 	 }
 }

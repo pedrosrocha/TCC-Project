@@ -35,22 +35,22 @@
 #define   DEF_MAX_MSG_LENGTH      128
 #define   sine_points          360
 
-#define Kp 0.5  // 0.3
-#define Ki 100 // 120
+#define Kp 0.01   //0.5
+#define Ki 0.9   //1.1
 #define limMin -30000
 #define limMax  30000
 #define T 0.000320
 #define _2_PI 6.28318530717
 #define radian2degree 57.29577951
 
-#define cutOffFrequency 5.0f
+#define cutOffFrequency 3.0f
 
 #define ADC_voltage_constant 0.0008056640625
 
 #define ADC_BUF_SIZE 4
 
 
-uint16_t sine_values[] =
+/*uint16_t sine_values[] =
                   {2074,2100,2126,2152,2178,2204,2231,2257,2282,2308,2334,2360,2385,2411,2436,2461,2487,2512,
                    2536,2561,2586,2610,2634,2658,2682,2706,2729,2753,2776,2798,2821,2843,2865,2887,2909,2930,
                    2951,2972,2993,3013,3033,3052,3072,3091,3109,3128,3146,3164,3181,3198,3215,3231,3247,3263,
@@ -69,7 +69,28 @@ uint16_t sine_values[] =
                    590,597,604,611,619,627,636,645,655,665,675,686,698,709,721,734,747,760,774,788,802,817,832,
                    848,864,880,897,914,931,949,967,986,1004,1023,1043,1062,1082,1102,1123,1144,1165,1186,1208,
                    1230,1252,1274,1297,1319,1342,1366,1389,1413,1437,1461,1485,1509,1534,1559,1583,1608,1634,
-                   1659,1684,1710,1735,1761,1787,1813,1838,1864,1891,1917,1943,1969,1995,2021,2048};
+                   1659,1684,1710,1735,1761,1787,1813,1838,1864,1891,1917,1943,1969,1995,2021,2048};*/
+
+
+uint16_t sine_values[] =
+                  {2032,2055,2078,2101,2124,2146,2169,2192,2214,2236,2259,2281,2303,2325,2347,2369,2391,2413,2435,2457,
+                   2479,2501,2522,2543,2564,2585,2606,2627,2648,2668,2688,2708,2728,2748,2768,2787,2805,2823,2841,2859,
+				   2877,2895,2914,2932,2951,2970,2989,3007,3026,3041,3054,3068,3081,3094,3108,3121,3133,3145,3156,3168,
+				   3180,3192,3203,3212,3221,3229,3237,3246,3254,3263,3269,3276,3282,3288,3295,3301,3307,3310,3313,3316,
+				   3319,3322,3325,3328,3327,3327,3326,3326,3325,3324,3323,3321,3318,3315,3312,3310,3307,3303,3297,3290,
+				   3284,3278,3272,3265,3258,3249,3240,3231,3222,3213,3204,3192,3177,3163,3148,3134,3119,3104,3089,3074,
+				   3058,3043,3027,3012,2996,2979,2960,2942,2923,2905,2887,2868,2847,2825,2803,2781,2759,2738,2716,2693,
+				   2671,2648,2626,2603,2581,2559,2535,2511,2487,2464,2440,2416,2392,2367,2343,2318,2293,2268,2244,2219,
+				   2193,2167,2141,2115,2090,2064,2038,2011,1985,1958,1932,1905,1879,1853,1829,1805,1781,1756,1732,1708,
+				   1684,1661,1638,1614,1591,1568,1544,1521,1498,1474,1451,1427,1404,1380,1357,1335,1312,1289,1266,1244,
+				   1221,1200,1179,1158,1137,1116,1095,1074,1055,1036,1016,997,978,959,939,920,901,882,863,844,825,806,
+				   789,773,757,740,724,708,692,678,663,649,635,621,607,594,582,571,559,548,536,524,514,505,496,487,478,
+				   470,461,453,447,441,435,430,424,418,413,410,406,403,400,396,393,392,392,393,393,393,394,394,396,399,
+				   402,405,408,411,415,419,424,428,433,437,442,447,458,469,480,491,502,513,524,537,550,562,575,587,600,
+				   613,628,643,658,673,688,703,719,737,755,773,792,810,828,847,870,892,914,937,959,981,1003,1025,1047,
+				   1069,1091,1113,1135,1159,1183,1208,1233,1257,1282,1307,1332,1357,1383,1409,1434,1460,1486,1511,1535,
+				   1560,1585,1610,1634,1659,1685,1711,1738,1764,1790,1816,1842,1866,1890,1914,1938,1961,1985,2009};
+
 
 
 typedef struct {
@@ -137,6 +158,7 @@ int counter_for_DMA_activation = 0;
 uint64_t current_tick = 0, end_tick = 0, diff_tick = 0, us = 0;
 float RealFrequeny = 0;
 uint8_t c = 0;
+
 
 
 /* USER CODE END Includes */
@@ -277,14 +299,22 @@ int main(void)
 		//sprintf(message, "Volt A: %.2f \t %lu \t \r\n",ThreePhasesVoltages.VoltageA, CurrentSample);
 
 
-		 //sprintf(message, "%.2f \t %u \t %.2f \t %.2f \t \r\n",  pid.Phase, CurrentSample, pid.Frequency/360, frequency);
+		 sprintf(message, "%.3f \t %.1f \t  %.1f \t \r\n", filteroutput/_2_PI, pid.Frequency/_2_PI , pid.Phase*radian2degree);
 		 //sprintf(message, "%.2f\t %.2f \r\n",  pid.Phase, error);
 		 //sprintf(message, "Alpha: %.2f \t Beta: %.2f \t %.1f  \t current sample: %lu \t \r\n",ClarkVal.Alpha, ClarkVal.Beta, error, pid.Phase);
-		 sprintf(message, "%.1f \t %.1f \t  %.3f \t  %.1f \t %lu \t \r\n", filteroutput, pid.Frequency/_2_PI, RealFrequeny , pid.Phase*radian2degree, CurrentSample);
+		 //sprintf(message, "%.3f \t %.1f \t  %.1f \t  %.1f \t %lu \t \r\n", filteroutput/_2_PI, pid.Frequency/_2_PI, RealFrequeny , pid.Phase*radian2degree, CurrentSample);
 
 		 //sprintf(message, "%.3f \t %.2f \t  %lu \t  %.2f \t %lu \t \r\n", 1000000.0f/filteroutput, pid.Frequency/360.0f, diff_tick , pid.Phase, CurrentSample);
 
+		  /*if(Filling ==  false){
+			  //us = 0;
+			  for(int i = 0; i<1000; i++){
+				  sprintf(message, "%lu \t %lu \t \r\n",  ReadVoltageA[i], (uint32_t)us);
+				  CDC_Transmit_FS(message, strlen(message));
+			  }
+			  Filling = true;
 
+		  }*/
 
 		  //Voltage_ADC_offset = adc_buffer[0];
 
@@ -932,8 +962,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		      }else{
 		         MeineBench.SineC = sine_values[CurrentSample + 239];
 		      }
-		   }
 
+
+		   }
 
 
 
@@ -981,18 +1012,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 		 PIDController_Update(&pid, error);
 		 integrator(&pid);
 
-		 //filteroutput = lowPassFilter(pid.Frequency/6.283185, &filt);
-		 //filteroutput = lowPassFilter2ndOrder(pid.Frequency/360.0f, &filter2nd);
+		 filteroutput = lowPassFilter(pid.Frequency, &filt);
+		 //filteroutput = lowPassFilter2ndOrder(pid.Frequency, &filter2nd);
 
 
-		 /*
-		   counter_E++;
-		   if(counter_E > 600){
+
+		   /*counter_E++;
+		   if(counter_E > 1200){
 			   counter_E = 0;
 			   frequency = frequency+1;
 			   if(frequency > 70) frequency = 50;
-		   }
-			*/
+		   }*/
+
 
 	 }
 }

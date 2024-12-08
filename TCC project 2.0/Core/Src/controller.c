@@ -6,6 +6,7 @@
  */
 
 #include "controller.h"
+#include <math.h>
 
 //--------------------
 #include "main.h"
@@ -72,11 +73,11 @@ char Tst[128] = "";
 
 
 void PIDController_Init(PIController *pid){
-	pid->prevError = 0.0f;
+	pid->prevIntegral = 0.0f;
 	pid->Phase = 0.0f;
 
-	pid->prevFrequency = 0.0f;
-	pid->Frequency = 0.0f;
+	pid->prevFrequency = 313.0f;
+	pid->Frequency = 314.0f;
 }
 
 float Sine(float phase){
@@ -103,34 +104,40 @@ double Cossine(float phase){
 
 
 float PIDController_Update(PIController *pid, float measurement){
+	//float a =  pid->Kp + (pid->Ki * pid->T/2);
+	//float b = -pid->Kp + (pid->Ki * pid->T/2);
+
 	float error = measurement;
-	float a =  pid->Kp + (pid->Ki * pid->T/2);
-	float b = -pid->Kp + (pid->Ki * pid->T/2);
+	float proportional;
+	float integral;
 
-	//pid->Frequency = pid->Frequency + pid->T/2*(pid->prevError + error)*pid->Ki + pid->Kp*error;
+	//pid->Frequency = pid->Frequency + a * error + b * pid->prevError;
 
-	pid->Frequency = pid->Frequency + a * error + b * pid->prevError;
+	proportional = error * pid->Kp;
+	integral     = pid->prevIntegral + error * pid->Ki * pid->T;
+
+	pid->Frequency = proportional + integral;
 
 	if(pid->Frequency > pid->limMax) pid->Frequency = pid->limMax;
 	if(pid->Frequency < pid->limMin) pid->Frequency = pid->limMin;
 
-	pid->prevError = error;
+	pid->prevIntegral = integral;
 
-	//pid->Frequency = 376.9911184;
 	return pid->Frequency;
 }
 
 float integrator(PIController *pid){
 
-	pid->Phase = pid->Phase + pid->T/2 *(pid->Frequency + pid->prevFrequency);
+	//pid->Phase = pid->Phase + pid->T/2 *(pid->Frequency + pid->prevFrequency);
+
+	pid->Phase = pid->Phase + pid->Frequency * pid->T;
 
 	if(pid->Phase > 6.2831853071) pid->Phase = 0;
 	if(pid->Phase < 0)            pid->Phase = 0;
 	//resets the phases wheneevr it passes the 360 mark(2*pi)
 
-	pid->prevFrequency = pid->Frequency;
+	//pid->prevFrequency = pid->Frequency;
 
-	//updates the PrevFrequency value
 
 	return pid->Phase;
 }

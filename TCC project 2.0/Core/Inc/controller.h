@@ -22,7 +22,7 @@ typedef struct {
 	//sample time (in seconds)
 	float T;
 
-	float prevError;
+	float prevIntegral;
 
 	float Phase;
 
